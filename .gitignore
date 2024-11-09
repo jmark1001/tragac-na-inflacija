@@ -22,4 +22,14 @@ go.work
 go.work.sum
 
 # env file
-.env
+*.env
+
+# mac files
+*.DS_Store
+
+# IDE related
+*.idea
+
+# python
+*__pycache__
+*.python-version
