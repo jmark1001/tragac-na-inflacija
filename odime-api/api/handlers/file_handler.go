@@ -2,12 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
+	_ "github.com/google/uuid"
 	"log"
 	"net/http"
 	"odime-api/internal/service"
 	"odime-api/pkg/models"
-	"path/filepath"
-	"strings"
+	"time"
 )
 
 type FileHandler struct {
@@ -31,7 +32,7 @@ func (h *FileHandler) GetFiles() http.Handler {
 	})
 }
 
-func (h *FileHandler) UploadFile() http.Handler {
+func (h *FileHandler) SaveAndPublish() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var fileRequest struct {
 			FilePath string `json:"file_path"` // Expecting file_path in the request
@@ -44,18 +45,14 @@ func (h *FileHandler) UploadFile() http.Handler {
 			return
 		}
 
-		// Extract file name and extension from the file path
-		fileName := filepath.Base(fileRequest.FilePath)
-		fileExtension := strings.ToLower(filepath.Ext(fileName))
-
-		// Create a file model instance (without the actual file)
 		file := models.File{
-			Name:     fileName,
-			Path:     fileRequest.FilePath,
-			FileType: fileExtension,
+			ReceiptID:         uuid.New().ID(),
+			Path:              fileRequest.FilePath,
+			Status:            "pending",
+			UploadedTimestamp: time.Now().Unix(),
 		}
 
-		if err := h.fileService.UploadFile(file); err != nil {
+		if err := h.fileService.SaveAndPublish(file); err != nil {
 			http.Error(w, "Error uploading file", http.StatusInternalServerError)
 			return
 		}

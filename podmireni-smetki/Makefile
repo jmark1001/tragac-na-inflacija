@@ -7,5 +7,4 @@ black:
 flake:
 	flake8 .
 
-
 clean: black flake

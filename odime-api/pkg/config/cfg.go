@@ -9,20 +9,21 @@ import (
 
 // Config holds the application configuration values.
 type Config struct {
-	AppName     string `mapstructure:"app_name"`
-	ServerPort  int    `mapstructure:"server_port"`
-	MQHost      string `mapstructure:"mq_host"`
-	MQPort      int    `mapstructure:"mq_port"`
-	MQUser      string `mapstructure:"mq_user"`
-	MQPassword  string `mapstructure:"mq_password"`
-	MQQueueName string `mapstructure:"mq_queue_name"`
-	KafkaBroker string `mapstructure:"kafka_broker"`
-	KafkaTopic  string `mapstructure:"kafka_topic"`
-	DbHost      string `mapstructure:"db_path"`
-	DbPort      int    `mapstructure:"db_port"`
-	DbUser      string `mapstructure:"db_user"`
-	DbPassword  string `mapstructure:"db_password"`
-	DbName      string `mapstructure:"db_name"`
+	AppName          string `mapstructure:"app_name"`
+	ServerPort       int    `mapstructure:"server_port"`
+	MQHost           string `mapstructure:"mq_host"`
+	MQPort           int    `mapstructure:"mq_port"`
+	MQUser           string `mapstructure:"mq_user"`
+	MQPassword       string `mapstructure:"mq_password"`
+	MQPendingQueue   string `mapstructure:"mq_pending_queue"`
+	MQProcessedQueue string `mapstructure:"mq_processed_queue"`
+	KafkaBroker      string `mapstructure:"kafka_broker"`
+	KafkaTopic       string `mapstructure:"kafka_topic"`
+	DbHost           string `mapstructure:"db_path"`
+	DbPort           int    `mapstructure:"db_port"`
+	DbUser           string `mapstructure:"db_user"`
+	DbPassword       string `mapstructure:"db_password"`
+	DbName           string `mapstructure:"db_name"`
 }
 
 // LoadConfig reads the configuration from a file or environment variables.

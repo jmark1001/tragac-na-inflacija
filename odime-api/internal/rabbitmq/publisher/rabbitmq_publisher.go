@@ -1,4 +1,4 @@
-package queue
+package publisher
 
 import (
 	"encoding/json"
@@ -19,7 +19,6 @@ type RabbitPublisher struct {
 
 func NewRabbitMQPublisher(host string, port int, user string, password string, queueName string) (*RabbitPublisher, error) {
 	connStr := fmt.Sprintf("amqp://%s:%s@%s:%d/", user, password, host, port)
-	println(connStr)
 	conn, err := amqp.Dial(connStr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
@@ -34,9 +33,9 @@ func NewRabbitMQPublisher(host string, port int, user string, password string, q
 		return nil, fmt.Errorf("failed to open a channel: %w", err)
 	}
 
-	// Declare a queue (ensure it exists)
+	// Declare a rabbitmq (ensure it exists)
 	queue, err := channel.QueueDeclare(
-		queueName, // queue name
+		queueName, // rabbitmq name
 		true,      // durable (survives broker restart)
 		false,     // auto-delete
 		false,     // exclusive
@@ -47,11 +46,11 @@ func NewRabbitMQPublisher(host string, port int, user string, password string, q
 		err := conn.Close()
 		if err != nil {
 			return nil, err
-		} // Close the connection properly if queue declaration fails
-		return nil, fmt.Errorf("failed to declare a queue: %w", err)
+		} // Close the connection properly if rabbitmq declaration fails
+		return nil, fmt.Errorf("failed to declare a rabbitmq: %w", err)
 	}
 
-	// Return the publisher with the channel and queue
+	// Return the publisher with the channel and rabbitmq
 	return &RabbitPublisher{
 		channel: channel,
 		queue:   queue,
@@ -68,7 +67,7 @@ func (p *RabbitPublisher) Publish(file models.File) error {
 	// Publish the message to RabbitMQ
 	err = p.channel.Publish(
 		"",           // default exchange
-		p.queue.Name, // routing key (queue name)
+		p.queue.Name, // routing key (rabbitmq name)
 		false,        // mandatory
 		false,        // immediate
 		amqp.Publishing{

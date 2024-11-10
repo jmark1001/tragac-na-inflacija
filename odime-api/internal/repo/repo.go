@@ -25,9 +25,21 @@ func NewRepository(host string, port int, user string, password string, dbName s
 	// Ensure the files table exists
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS files (
 		id SERIAL PRIMARY KEY,
-		name VARCHAR(255) NOT NULL,
+		receipt_id	INTEGER UNIQUE NOT NULL,
 		path TEXT NOT NULL,
-		file_type VARCHAR(10) NOT NULL
+		status VARCHAR(100),
+    	uploaded_timestamp BIGINT,
+    	processed_timestamp BIGINT
+	)`)
+	if err != nil {
+		return nil, err
+	}
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS expenses (
+		id SERIAL PRIMARY KEY,
+		receipt_id	INTEGER UNIQUE NOT NULL,
+		category VARCHAR(100),
+		amount FLOAT,
+    	timestamp BIGINT
 	)`)
 	if err != nil {
 		return nil, err
@@ -54,7 +66,7 @@ func (r *FileRepository) GetFiles() ([]models.File, error) {
 	// Loop through the rows and scan into File structs
 	for rows.Next() {
 		var file models.File
-		if err := rows.Scan(&file.ID, &file.Name, &file.Path, &file.FileType); err != nil {
+		if err := rows.Scan(&file.ID, &file.ReceiptID, &file.Path, &file.Status); err != nil {
 			return nil, fmt.Errorf("failed to scan file row: %w", err)
 		}
 		files = append(files, file)
@@ -69,10 +81,29 @@ func (r *FileRepository) GetFiles() ([]models.File, error) {
 }
 
 func (r *FileRepository) SaveFile(file models.File) error {
-	query := `INSERT INTO files (name, path, file_type) VALUES ($1, $2, $3)`
-	_, err := r.db.Exec(query, file.Name, file.Path, file.FileType)
+	query := `INSERT INTO files (receipt_id, path, status, uploaded_timestamp) VALUES ($1, $2, $3, $4)`
+	_, err := r.db.Exec(query, file.ReceiptID, file.Path, file.Status, file.UploadedTimestamp)
 	if err != nil {
+		print("failed insert")
 		return fmt.Errorf("failed to insert file: %s", file.Path)
+	}
+	return nil
+}
+
+func (r *FileRepository) UpdateFile(file models.File) error {
+	query := `UPDATE files SET status=$1, processed_timestamp=$2 WHERE receipt_id=$3`
+	_, err := r.db.Exec(query, file.Status, file.ProcessedTimestamp, file.ReceiptID)
+	if err != nil {
+		return fmt.Errorf("failed to update file: %s", file.Path)
+	}
+	return nil
+}
+
+func (r *FileRepository) SaveExpense(expense models.Expense) error {
+	query := `INSERT INTO expenses (receipt_id, category, amount, timestamp) VALUES ($1, $2, $3, $4)`
+	_, err := r.db.Exec(query, expense.ReceiptID, expense.Category, expense.Amount, expense.Timestamp)
+	if err != nil {
+		return fmt.Errorf("failed to insert expense: %s", expense.ReceiptID)
 	}
 	return nil
 }
