@@ -7,6 +7,7 @@ from typing import Dict
 import os
 import pika
 
+from clients import logger
 from handlers import file_handler
 
 load_dotenv()
@@ -14,7 +15,7 @@ load_dotenv()
 
 class RabbitMQClient:
     def __init__(self):
-        host = os.getenv("MQ_HOST", "localhost")
+        host = os.getenv("MQ_HOST", "rabbitmq")
         username = os.getenv("MQ_USER", "guest")
         password = os.getenv("MQ_PASSWORD", "guest")
         self.pending_queue = os.getenv("MQ_PENDING_QUEUE", "pending_files")
@@ -37,7 +38,7 @@ class RabbitMQClient:
             routing_key=self.processed_queue,
             body=json.dumps(message).encode('utf-8')
         )
-        print(f"Sent message: {message}")
+        logger.info(f"Sent message: {message}")
 
     def consume_messages(self):
         if self.channel is None:
@@ -48,34 +49,34 @@ class RabbitMQClient:
         self.channel.basic_consume(
             queue=self.pending_queue, on_message_callback=self.on_message, auto_ack=True
         )
-        print(f"Waiting for messages in {self.pending_queue}. To exit press CTRL+C")
+        logger.info(f"Waiting for messages in {self.pending_queue}. To exit press CTRL+C")
         self.channel.start_consuming()
 
     def close(self):
         """Close the connection and channel."""
         if self.connection:
             self.connection.close()
-            print("Connection closed.")
+            logger.info("Connection closed.")
 
     def on_message(self, ch, method, properties, body):
         input_message = expense = None
         try:
             input_message = json.loads(body)
-            print(input_message)
+            logger.debug(input_message)
         except json.JSONDecodeError:
-            print("Received non-JSON message:", body)
+            logger.error("Received non-JSON message:", body)
         if input_message:
             try:
-                expense = file_handler.process_file(Path(input_message.get("path")))
+                expense = file_handler.process_file(Path(input_message.get("shared_path")))
             except Exception as e:
-                print("Error while parsing file: ", e)
+                logger.error("Error while parsing file: ", e)
             output_message = {
                 "receipt_id": input_message.get("receipt_id"),
-                "path": input_message.get("path"),
+                "shared_path": input_message.get("shared_path"),
                 "status": "failure"
             }
             if expense:
                 output_message["status"] = "success"
                 output_message["data"] = expense
-            print(output_message)
+            logger.debug(output_message)
             self.publish_message(output_message)

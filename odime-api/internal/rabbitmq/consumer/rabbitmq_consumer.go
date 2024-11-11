@@ -22,10 +22,9 @@ type RabbitConsumer struct {
 
 func NewRabbitMQConsumer(host string, port int, user string, password string, queueName string, service service.FileService) (*RabbitConsumer, error) {
 	connStr := fmt.Sprintf("amqp://%s:%s@%s:%d/", user, password, host, port)
-	println(connStr)
 	conn, err := amqp.Dial(connStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
+		return nil, fmt.Errorf("failed to connect to RabbitMQ: %v", err)
 	}
 
 	channel, err := conn.Channel()
@@ -34,9 +33,8 @@ func NewRabbitMQConsumer(host string, port int, user string, password string, qu
 		if err != nil {
 			return nil, err
 		}
-		return nil, fmt.Errorf("failed to open a channel: %w", err)
+		return nil, fmt.Errorf("failed to open a channel: %v", err)
 	}
-	println("rabbitmq: ", queueName)
 	// Declare the rabbitmq
 	queue, err := channel.QueueDeclare(
 		queueName, // rabbitmq name
@@ -51,7 +49,7 @@ func NewRabbitMQConsumer(host string, port int, user string, password string, qu
 		if err != nil {
 			return nil, err
 		}
-		return nil, fmt.Errorf("failed to declare a rabbitmq: %w", err)
+		return nil, fmt.Errorf("failed to declare a rabbitmq: %v", err)
 	}
 
 	return &RabbitConsumer{
@@ -72,7 +70,7 @@ func (c *RabbitConsumer) Consume() error {
 		nil,          // arguments
 	)
 	if err != nil {
-		return fmt.Errorf("failed to start consuming: %w", err)
+		return fmt.Errorf("failed to start consuming: %v", err)
 	}
 
 	for msg := range msgs {
@@ -92,13 +90,6 @@ func processMessage(c *RabbitConsumer, body []byte) error {
 		log.Printf("Error unmarshalling message: %v", err)
 		return err
 	}
-
-	fmt.Println("Receipt ID:", msg.ReceiptID)
-	fmt.Println("File Path:", msg.Path)
-	fmt.Println("Status:", msg.Status)
-	fmt.Println("Category:", msg.Data.Category)
-	fmt.Println("Amount:", msg.Data.Amount)
-
 	file := models.File{
 		ReceiptID:          msg.ReceiptID,
 		Path:               msg.Path,

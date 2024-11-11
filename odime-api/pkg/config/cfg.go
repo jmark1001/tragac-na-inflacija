@@ -17,9 +17,7 @@ type Config struct {
 	MQPassword       string `mapstructure:"mq_password"`
 	MQPendingQueue   string `mapstructure:"mq_pending_queue"`
 	MQProcessedQueue string `mapstructure:"mq_processed_queue"`
-	KafkaBroker      string `mapstructure:"kafka_broker"`
-	KafkaTopic       string `mapstructure:"kafka_topic"`
-	DbHost           string `mapstructure:"db_path"`
+	DbHost           string `mapstructure:"db_host"`
 	DbPort           int    `mapstructure:"db_port"`
 	DbUser           string `mapstructure:"db_user"`
 	DbPassword       string `mapstructure:"db_password"`

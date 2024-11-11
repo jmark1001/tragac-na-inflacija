@@ -6,7 +6,7 @@ type Data struct {
 }
 
 type FileMessage struct {
-	ReceiptID uint32 `json:"receipt_id"`
+	ReceiptID int64  `json:"receipt_id"`
 	Path      string `json:"path"`
 	Status    string `json:"status"`
 	Data      Data   `json:"data"`

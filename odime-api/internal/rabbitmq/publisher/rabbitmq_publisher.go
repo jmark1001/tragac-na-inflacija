@@ -21,7 +21,7 @@ func NewRabbitMQPublisher(host string, port int, user string, password string, q
 	connStr := fmt.Sprintf("amqp://%s:%s@%s:%d/", user, password, host, port)
 	conn, err := amqp.Dial(connStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
+		return nil, fmt.Errorf("failed to connect to RabbitMQ: %v", err)
 	}
 
 	channel, err := conn.Channel()
@@ -30,7 +30,7 @@ func NewRabbitMQPublisher(host string, port int, user string, password string, q
 		if err != nil {
 			return nil, err
 		} // Close the connection properly if the channel creation fails
-		return nil, fmt.Errorf("failed to open a channel: %w", err)
+		return nil, fmt.Errorf("failed to open a channel: %v", err)
 	}
 
 	// Declare a rabbitmq (ensure it exists)
@@ -47,7 +47,7 @@ func NewRabbitMQPublisher(host string, port int, user string, password string, q
 		if err != nil {
 			return nil, err
 		} // Close the connection properly if rabbitmq declaration fails
-		return nil, fmt.Errorf("failed to declare a rabbitmq: %w", err)
+		return nil, fmt.Errorf("failed to declare a rabbitmq: %v", err)
 	}
 
 	// Return the publisher with the channel and rabbitmq
@@ -60,8 +60,7 @@ func NewRabbitMQPublisher(host string, port int, user string, password string, q
 func (p *RabbitPublisher) Publish(file models.File) error {
 	message, err := json.Marshal(file)
 	if err != nil {
-		log.Printf("Failed to serialize file data: %v", err)
-		return fmt.Errorf("failed to serialize file data: %w", err)
+		return fmt.Errorf("failed to serialize file data: %v", err)
 	}
 
 	// Publish the message to RabbitMQ
@@ -76,11 +75,9 @@ func (p *RabbitPublisher) Publish(file models.File) error {
 		},
 	)
 	if err != nil {
-		log.Printf("Failed to publish message to RabbitMQ: %v", err)
-		return fmt.Errorf("failed to publish message to RabbitMQ: %w", err)
+		return fmt.Errorf("failed to publish message to RabbitMQ: %v", err)
 	}
 
-	log.Println("Message published to RabbitMQ successfully:", string(message))
 	return nil
 }
 

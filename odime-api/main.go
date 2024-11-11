@@ -4,12 +4,12 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"odime-api/api/handlers" // Importing handlers package
+	"odime-api/api/handlers"
 	"odime-api/internal/rabbitmq/consumer"
 	"odime-api/internal/rabbitmq/publisher"
 	"odime-api/internal/repo"
-	"odime-api/internal/service" // Importing service package
-	"odime-api/pkg/config"       // Configuration package
+	"odime-api/internal/service"
+	"odime-api/pkg/config"
 	"strconv"
 )
 
@@ -28,7 +28,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	println("publisher declared successfully")
 	defer rabbitMQPublisher.Close()
 
 	fileService := service.NewFileService(*fileRepo, rabbitMQPublisher)
@@ -39,7 +38,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	println("consumer declared successfully")
 	defer rabbitMQConsumer.Close()
 
 	// Start the consumer in a separate goroutine

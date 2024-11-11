@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    container_name: ${DB_HOST}
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: ${MQ_HOST}
+    environment:
+      RABBITMQ_DEFAULT_USER: ${MQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${MQ_PASSWORD}
+    networks:
+      - app-network
+
+  api-server:
+    build:
+      context: .
+      dockerfile: odime-api/Dockerfile
+    volumes:
+      - shared-files:/data
+    depends_on:
+      - db
+      - rabbitmq
+    container_name: api-server
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./odime-api/.env
+    networks:
+      - app-network
+
+  python-consumer:
+    build:
+      context: .
+      dockerfile: podmireni-smetki/Dockerfile
+    volumes:
+      - shared-files:/data
+    depends_on:
+      - rabbitmq
+    container_name: python-consumer
+    env_file:
+      - ./podmireni-smetki/.env
+    networks:
+      - app-network
+
+volumes:
+  shared-files:
+
+networks:
+  app-network:
+    driver: bridge
